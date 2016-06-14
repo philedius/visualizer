@@ -35,7 +35,7 @@ var audioSource = function(player) {
 var player = document.getElementById('player');
 var songs = ['IFL', 'promnight', 'tobira', 'marblesoda', 'frae', 'glosoli', 'mindspun', 'lippincott', 'endlessfantasy', 'smb'];
 // player.setAttribute('src', 'music/glosoli.mp3');
-// player.setAttribute('src', 'music/' + songs[9] + '.mp3');
+// player.setAttribute('src', 'music/' + songs[7] + '.mp3');
 player.setAttribute('src', 'music/' + songs[Math.floor(Math.random() * songs.length)] + '.mp3');
 
 var aSource = new audioSource(player);
@@ -47,18 +47,20 @@ canvas.width = width;
 canvas.height = height;
 var saturation = 100;
 var backgroundSaturation = 100;
-var backgroundValue = 75;
+var backgroundValue = 50;
 var hueShift = (Math.random() * 360);
-var gradientHueShift = 360 / 3;
+var gradientHueShift = 360 / 4;
 var colorRange = 120;
 var isPaused = false;
 var backgroundColor;
 var foregroundGradientStops = [];
 var backgroundGradientStops = [];
-var radiusAmplifier = 1.4;
-var minRadius = 50;
+var radiusAmplifier = 1.3;
+var minRadius = 60;
+var previousMidCircleSize = minRadius;
 
 var drawVisualizer = function() {
+    ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, width, height);
 
     // Make colors b/w monochromatic when paused
@@ -87,17 +89,19 @@ var drawVisualizer = function() {
         var val = aSource.frequencyData[bin];
 
         // ~~ Magic number land ~~
+        
         // background
         // hue: Hue of color within a certain colorRange and with a shift applied
         var hue = (val / 256 * colorRange + hueShift) % 360;
         // ColorVal: Value of color in the range of 20-60
         var colorVal = (val / 256 * 30) + 20;
+        
         ctx.beginPath();
         // arc radius is minimum 300px radius, with added frequency value with amplifier
-        ctx.arc(width / 2, height / 2, 300 + val * radiusAmplifier, startAngle, endAngle, false);
+        ctx.arc(width / 2, height / 2, val * radiusAmplifier * 2, startAngle, endAngle, false);
+        
         ctx.lineTo(width / 2, height / 2);
-        // Background hue has 180 added to it to be give the color on the opposite side of the color wheel
-        backgroundGradientStops[0] = 'hsla(' + (hue + 180) % 360 + ', ' + backgroundSaturation + '%, ' + backgroundValue + '%, 0.1)';
+        backgroundGradientStops[0] = 'hsla(' + hue % 360 + ', ' + backgroundSaturation + '%, ' + backgroundValue + '%, 0.05)';
         backgroundGradientStops[1] = 'white';
         // Radius of the second stop is a combination of the frequency value 
         // and volume per frame, with some magic numbers thrown in for fun.
@@ -111,7 +115,7 @@ var drawVisualizer = function() {
         //foreground
         // Subtraction from startAngle because of some offset I didn't understand that made gaps
         // between bars.
-        startAngle -= 0.01;
+        startAngle -= 0.005;
         var hue = (val / 256 * colorRange + hueShift) % 360;
         // gradientHue: Color for second color stop. It has another hue shift added to it to recieve
         //              a complementary color a third of the way round the color wheel
@@ -135,15 +139,54 @@ var drawVisualizer = function() {
     }
 
     // Middle circle
+    var middleCircleRadius = minRadius + (aSource.volume / 120);
     ctx.beginPath();
     // Middle circle has a minimum radius of minRadius px so that it lines up with foreground frequency bars.
     // It's radius is dependant on the overall volume per frame divided by a magic number that I felt
     // made it coolest, yo.
-    ctx.arc(width / 2, height / 2, minRadius + (aSource.volume / 120), 0, 2 * Math.PI, false);
+    ctx.arc(width / 2, height / 2, middleCircleRadius, 0, 2 * Math.PI, false);
     ctx.fillStyle = 'white';
     ctx.fill();
     ctx.closePath();
+    if (middleCircleRadius > 20) {
+        ctx.beginPath();
+        ctx.arc(width / 2, height / 2, middleCircleRadius - 20, 0, 2 * Math.PI, false);
+        ctx.fillStyle = foregroundGradientStops[0];
+        ctx.fill();
+        ctx.closePath();
+    }
+    if (middleCircleRadius > 40) {
+        ctx.beginPath();
+        ctx.arc(width / 2, height / 2, middleCircleRadius - 30, 0, 2 * Math.PI, false);
+        ctx.fillStyle = 'rgba(190, 190, 190, 0.2)';
+        ctx.fill();
+        ctx.closePath();
+        ctx.beginPath();
+        ctx.arc(width / 2, height / 2, middleCircleRadius - 40, 0, 2 * Math.PI, false);
+        ctx.fillStyle = 'white';
+        ctx.fill();
+        ctx.closePath();
+    }
+    if (middleCircleRadius > 70) {
+        ctx.beginPath();
+        ctx.arc(width / 2, height / 2, middleCircleRadius - 70, 0, 2 * Math.PI, false);
+        ctx.fillStyle = foregroundGradientStops[1];
+        ctx.fill();
+        ctx.closePath();
+    }
+    if (middleCircleRadius > 90) {
+        ctx.beginPath();
+        ctx.arc(width / 2, height / 2, middleCircleRadius - 80, 0, 2 * Math.PI, false);
+        ctx.fillStyle = 'rgba(190, 190, 190, 0.2)';
+        ctx.fill();
+        ctx.closePath();
+        ctx.beginPath();
+        ctx.arc(width / 2, height / 2, middleCircleRadius - 90, 0, 2 * Math.PI, false);
+        ctx.fillStyle = 'white';
+        ctx.fill();
+        ctx.closePath();
 
+    }
     requestAnimationFrame(drawVisualizer);
 };
 
