@@ -54,7 +54,6 @@ var colorRange = 120;
 var isPaused = false;
 var backgroundColor;
 var foregroundGradientStops = [];
-var backgroundGradientStops = [];
 var radiusAmplifier = 1.3;
 var minRadius = 60;
 var previousMidCircleSize = minRadius;
@@ -98,17 +97,16 @@ var drawVisualizer = function() {
         
         ctx.beginPath();
         // arc radius is minimum 300px radius, with added frequency value with amplifier
-        ctx.arc(width / 2, height / 2, val * radiusAmplifier * 2, startAngle, endAngle, false);
+        if (val > 10) {
+            ctx.arc(width / 2, height / 2, 20 + val * (radiusAmplifier + bin / 150) * 1.35, startAngle, endAngle, false);
+        } else {
+            ctx.arc(width / 2, height / 2, val * (radiusAmplifier + bin / 150) * 1.35, startAngle, endAngle, false);
+        }
+        
         
         ctx.lineTo(width / 2, height / 2);
-        backgroundGradientStops[0] = 'hsla(' + hue % 360 + ', ' + backgroundSaturation + '%, ' + backgroundValue + '%, 0.05)';
-        backgroundGradientStops[1] = 'white';
-        // Radius of the second stop is a combination of the frequency value 
-        // and volume per frame, with some magic numbers thrown in for fun.
-        var gradient = ctx.createRadialGradient(width / 2, height / 2, 30, width / 2, height / 2, 100 + (val * 2 + aSource.volume / 35) / 2);
-        gradient.addColorStop(0, backgroundGradientStops[0]);
-        gradient.addColorStop(1, backgroundGradientStops[1]);
-        ctx.fillStyle = gradient;
+        backgroundColor = 'hsla(' + hue % 360 + ', ' + backgroundSaturation + '%, ' + backgroundValue + '%, 0.2)';
+        ctx.fillStyle = backgroundColor;
         ctx.fill();
         ctx.closePath();
 
@@ -158,7 +156,7 @@ var drawVisualizer = function() {
     if (middleCircleRadius > 40) {
         ctx.beginPath();
         ctx.arc(width / 2, height / 2, middleCircleRadius - 30, 0, 2 * Math.PI, false);
-        ctx.fillStyle = 'rgba(190, 190, 190, 0.2)';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
         ctx.fill();
         ctx.closePath();
         ctx.beginPath();
@@ -177,7 +175,7 @@ var drawVisualizer = function() {
     if (middleCircleRadius > 90) {
         ctx.beginPath();
         ctx.arc(width / 2, height / 2, middleCircleRadius - 80, 0, 2 * Math.PI, false);
-        ctx.fillStyle = 'rgba(190, 190, 190, 0.2)';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
         ctx.fill();
         ctx.closePath();
         ctx.beginPath();
