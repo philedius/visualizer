@@ -34,9 +34,9 @@ var audioSource = function(player) {
 
 var player = document.getElementById('player');
 var songs = ['IFL', 'promnight', 'tobira', 'marblesoda', 'frae', 'glosoli', 'mindspun', 'lippincott', 'endlessfantasy', 'smb'];
-// player.setAttribute('src', 'glosoli.mp3');
-// player.setAttribute('src', songs[9] + '.mp3');
-player.setAttribute('src', songs[Math.floor(Math.random() * songs.length)] + '.mp3');
+// player.setAttribute('src', 'music/glosoli.mp3');
+// player.setAttribute('src', 'music/' + songs[9] + '.mp3');
+player.setAttribute('src', 'music/' + songs[Math.floor(Math.random() * songs.length)] + '.mp3');
 
 var aSource = new audioSource(player);
 var canvas = document.getElementById('canvas');
