@@ -1,3 +1,16 @@
+/* 
+
+TODO:
+    * Drag and drop music files?
+    * Or maybe paste soundcloud links?
+    * Or spotify?
+    * Function for drawing circles
+    * Extract data in a meaningful way
+    * Convey feeling of music <-- EASY
+    * Clean up this filth!
+
+*/
+
 var audioSource = function(player) {
     var self = this;
     var audioCtx = new(window.AudioContext || window.webkitAudioContext);
