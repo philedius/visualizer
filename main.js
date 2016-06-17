@@ -47,9 +47,8 @@ var audioSource = function(player) {
 }
 
 var player = document.getElementById('player');
-var songs = ['IFL', 'propaganda', 'promnight', 'tobira', 'marblesoda', 'frae', 'glosoli', 'mindspun', 'lippincott', 'endlessfantasy', 'smb', 'stupidhoe'];
-// player.setAttribute('src', 'music/propaganda.mp3');
-// player.setAttribute('src', 'music/' + songs[7] + '.mp3');
+var songs = ['IFL', 'propaganda', 'promnight', 'tobira', 'marblesoda', 'frae', 'glosoli', 'mindspun', 'lippincott', 'endlessfantasy', 'bombay', 'stupidhoe'];
+player.setAttribute('src', 'music/tobira.mp3');
 player.setAttribute('src', 'music/' + songs[Math.floor(Math.random() * songs.length)] + '.mp3');
 
 var aSource = new audioSource(player);
@@ -125,7 +124,7 @@ var drawVisualizer = function() {
 };
 
 var drawRegularFrequencyBars = function () {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
     var barWidth = (width / aSource.frequencyData.length * 2);
     for (var bin = 3; bin < aSource.frequencyData.length / 2 + 3; bin++) {
         var val = aSource.frequencyData[bin] * (1 + (bin / 150));
@@ -148,8 +147,8 @@ var drawFrequencyBars = function () {
         /* BACKGROUND FREQUENCY BARS */
         // hue: Hue of color within a certain colorRange and with a shift applied
         var hue = (val / 256 * colorRange + hueShift) % 360;
-        // ColorVal: Value of color in the range of 20-60
-        var colorVal = (val / 256 * 30) + 20;
+        // ColorVal: Value of color in the range of 25-40
+        var colorVal = (val / 256 * 15) + 25;
         
         ctx.beginPath();
         // arc radius is minimum 300px radius, with added frequency value with amplifier
@@ -177,7 +176,7 @@ var drawFrequencyBars = function () {
         /*  The radius has a minimum value of minRadius px, with added frequency value with amplifier */
         ctx.arc(width / 2, height / 2, minRadius + val * radiusAmplifier, startAngle, endAngle, false);
         ctx.lineTo(width / 2, height / 2);
-        foregroundGradientStops[0] = 'hsl(' + gradientHue + ', ' + saturation + '%, ' + 65 + '%)';
+        foregroundGradientStops[0] = 'hsl(' + gradientHue + ', ' + saturation + '%, ' + 70 + '%)';
         foregroundGradientStops[1] = 'hsl(' + hue + ', ' + saturation + '%, ' + colorVal + '%)';
         gradient = ctx.createRadialGradient(width / 2, height / 2, val, width / 2, height / 2, val * 2);
         gradient.addColorStop(0, foregroundGradientStops[0]);
@@ -188,61 +187,6 @@ var drawFrequencyBars = function () {
     }
 }
 
-// var drawFrequencyBars = function () {
-//     /*  I only use half of the frequency bins, because often most of the second half is barely used
-//         and makes the visualizer look stupid. I also forego the 3 lowest frequency bins because they were
-//         fairly consistently maxed out on most songs I tested on, which made for lackluster visuals. */
-//     for (var bin = aSource.frequencyData.length / 2 + 3; bin > 3; bin--) {
-//         if (angleSize === 0) angleSize = 2 * Math.PI / (aSource.frequencyData.length / 2);
-//         startAngle = endAngle;
-//         endAngle += angleSize;
-//         var val = aSource.frequencyData[bin];        
-        
-//         /* BACKGROUND FREQUENCY BARS */
-//         // hue: Hue of color within a certain colorRange and with a shift applied
-//         var hue = (val / 256 * colorRange + hueShift) % 360;
-//         // ColorVal: Value of color in the range of 20-60
-//         var colorVal = (val / 256 * 30) + 20;
-        
-//         ctx.beginPath();
-//         // arc radius is minimum 300px radius, with added frequency value with amplifier
-//         if (val > 10) {
-//             ctx.arc(width / 2, height / 2, 20 + val * (backgroundRadiusAmplifier + bin / 150), startAngle, endAngle, false);
-//         } else {
-//             ctx.arc(width / 2, height / 2, val * (backgroundRadiusAmplifier + bin / 150), startAngle, endAngle, false);
-//         }
-        
-//         ctx.lineTo(width / 2, height / 2);
-//         backgroundColor = 'hsla(' + hue % 360 + ', ' + backgroundSaturation + '%, ' + backgroundValue + '%, 0.2)';
-//         ctx.fillStyle = backgroundColor;
-//         ctx.fill();
-//         ctx.closePath();
-
-//         /* FOREGROUND FREQUENCY BARS */
-//         /*  Subtraction from startAngle because of some offset I didn't understand that made gaps
-//             between bars. */
-//         startAngle -= 0.005;
-//         var hue = (val / 256 * colorRange + hueShift) % 360;
-//         /*  gradientHue: Color for second color stop. It has another hue shift added to it to recieve
-//             a complementary color a third of the way round the color wheel */
-//         var gradientHue = (hue + gradientHueShift) % 360;
-//         ctx.beginPath();
-//         /*  The radius has a minimum value of minRadius px, with added frequency value with amplifier
-//             and has some magic number (bin/150) added to it to balance 
-//             out the difference in frequency values to make the circle more even and prettier.
-//             NOTE: It could be evened out more but it makes the colors go out of "alignment". Stupid hack */
-//         ctx.arc(width / 2, height / 2, minRadius + val * (radiusAmplifier + bin / 150), startAngle, endAngle, false);
-//         ctx.lineTo(width / 2, height / 2);
-//         foregroundGradientStops[0] = 'hsl(' + gradientHue + ', ' + saturation + '%, ' + 65 + '%)';
-//         foregroundGradientStops[1] = 'hsl(' + hue + ', ' + saturation + '%, ' + colorVal + '%)';
-//         gradient = ctx.createRadialGradient(width / 2, height / 2, val, width / 2, height / 2, val * 2);
-//         gradient.addColorStop(0, foregroundGradientStops[0]);
-//         gradient.addColorStop(1, foregroundGradientStops[1]);
-//         ctx.fillStyle = gradient;
-//         ctx.fill();
-//         ctx.closePath();
-//     }
-// }
 var drawMiddleCircles = function () {
     var middleCircleRadius = minRadius + (aSource.volume / 110);
     /*  Middle circle has a minimum radius of minRadius px so that it lines up with foreground frequency bars.
