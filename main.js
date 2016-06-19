@@ -48,7 +48,7 @@ var audioSource = function(player) {
 
 var player = document.getElementById('player');
 var songs = ['IFL', 'propaganda', 'promnight', 'tobira', 'marblesoda', 'frae', 'glosoli', 'mindspun', 'lippincott', 'endlessfantasy', 'bombay', 'stupidhoe'];
-player.setAttribute('src', 'music/tobira.mp3');
+// player.setAttribute('src', 'music/tobira.mp3');
 player.setAttribute('src', 'music/' + songs[Math.floor(Math.random() * songs.length)] + '.mp3');
 
 var aSource = new audioSource(player);
@@ -56,6 +56,8 @@ var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext("2d");
 var width = window.innerWidth;
 var height = window.innerHeight;
+var halfWidth = width / 2;
+var halfHeight = height / 2;
 canvas.width = width;
 canvas.height = height;
 var saturation = 100;
@@ -72,6 +74,8 @@ var backgroundRadiusAmplifier = radiusAmplifier * 1.35;
 var minRadius = 60;
 var previousMidCircleSize = minRadius;
 var frameCounter = 0;
+var framesSinceLastFloatingCircle = 0;
+var floatingCircles = [];
 
 
 /*  Analyses and returns averages of bass, mid, and treble for each frame. Probably useless.
@@ -116,6 +120,7 @@ var drawVisualizer = function() {
     // hueShift: Shifts the hue of colors, speed of shifting depends on the total volume each frame
     hueShift += aSource.volume / 10000;
 
+    drawFloatingCircles();
     drawFrequencyBars();
     drawWaveform(aSource.timeDomainData, foregroundGradientStops[0], aSource.volume);    
     drawMiddleCircles();
@@ -153,12 +158,12 @@ var drawFrequencyBars = function () {
         ctx.beginPath();
         // arc radius is minimum 300px radius, with added frequency value with amplifier
         if (val > 10) {
-            ctx.arc(width / 2, height / 2, 20 + val * backgroundRadiusAmplifier, startAngle, endAngle, false);
+            ctx.arc(halfWidth, halfHeight, 20 + val * backgroundRadiusAmplifier, startAngle, endAngle, false);
         } else {
-            ctx.arc(width / 2, height / 2, val * backgroundRadiusAmplifier, startAngle, endAngle, false);
+            ctx.arc(halfWidth, halfHeight, val * backgroundRadiusAmplifier, startAngle, endAngle, false);
         }
         
-        ctx.lineTo(width / 2, height / 2);
+        ctx.lineTo(halfWidth, halfHeight);
         backgroundColor = 'hsla(' + hue % 360 + ', ' + backgroundSaturation + '%, ' + backgroundValue + '%, 0.2)';
         ctx.fillStyle = backgroundColor;
         ctx.fill();
@@ -174,11 +179,11 @@ var drawFrequencyBars = function () {
         var gradientHue = (hue + gradientHueShift) % 360;
         ctx.beginPath();
         /*  The radius has a minimum value of minRadius px, with added frequency value with amplifier */
-        ctx.arc(width / 2, height / 2, minRadius + val * radiusAmplifier, startAngle, endAngle, false);
-        ctx.lineTo(width / 2, height / 2);
+        ctx.arc(halfWidth, halfHeight, minRadius + val * radiusAmplifier, startAngle, endAngle, false);
+        ctx.lineTo(halfWidth, halfHeight);
         foregroundGradientStops[0] = 'hsl(' + gradientHue + ', ' + saturation + '%, ' + 70 + '%)';
         foregroundGradientStops[1] = 'hsl(' + hue + ', ' + saturation + '%, ' + colorVal + '%)';
-        gradient = ctx.createRadialGradient(width / 2, height / 2, val, width / 2, height / 2, val * 2);
+        gradient = ctx.createRadialGradient(halfWidth, halfHeight, val, halfWidth, halfHeight, val * 2);
         gradient.addColorStop(0, foregroundGradientStops[0]);
         gradient.addColorStop(1, foregroundGradientStops[1]);
         ctx.fillStyle = gradient;
@@ -193,35 +198,36 @@ var drawMiddleCircles = function () {
         It's radius is dependant on the overall volume per frame divided by a magic number that I felt
         made it coolest, yo. */
     
-    drawCircle(width / 2, height / 2, middleCircleRadius, 'white');
+    var transparentWhite = 'rgba(255, 255, 255, 0.3)';
+    drawCircle(halfWidth, halfHeight, middleCircleRadius, 'white');
 
     if (middleCircleRadius > 30) {
-        drawCircle(width / 2, height / 2, middleCircleRadius - 30, foregroundGradientStops[0]);
+        drawCircle(halfWidth, halfHeight, middleCircleRadius - 30, foregroundGradientStops[0]);
     }
     if (middleCircleRadius > 50) {
-        drawCircle(width / 2, height / 2, middleCircleRadius - 40, 'rgba(255, 255, 255, 0.3)');
-        drawCircle(width / 2, height / 2, middleCircleRadius - 50, 'white');
+        drawCircle(halfWidth, halfHeight, middleCircleRadius - 40, transparentWhite);
+        drawCircle(halfWidth, halfHeight, middleCircleRadius - 50, 'white');
     }
     if (middleCircleRadius > 80) {
-        drawCircle(width / 2, height / 2, middleCircleRadius - 80, foregroundGradientStops[1]);
+        drawCircle(halfWidth, halfHeight, middleCircleRadius - 80, foregroundGradientStops[1]);
 
     }
     if (middleCircleRadius > 100) {
-        drawCircle(width / 2, height / 2, middleCircleRadius - 90, 'rgba(255, 255, 255, 0.3)');
-        drawCircle(width / 2, height / 2, middleCircleRadius - 100, 'white');
+        drawCircle(halfWidth, halfHeight, middleCircleRadius - 90, transparentWhite);
+        drawCircle(halfWidth, halfHeight, middleCircleRadius - 100, 'white');
     }
 
     if (middleCircleRadius > 130) {
-        drawCircle(width / 2, height / 2, middleCircleRadius - 130, foregroundGradientStops[0]);
+        drawCircle(halfWidth, halfHeight, middleCircleRadius - 130, foregroundGradientStops[0]);
     }
 
     if (middleCircleRadius > 150) {
-        drawCircle(width / 2, height / 2, middleCircleRadius - 150, 'rgba(255, 255, 255, 0.3)');
+        drawCircle(halfWidth, halfHeight, middleCircleRadius - 150, transparentWhite);
     }
 }
 
 var drawWaveform = function (timeDomainData, style, volume) {
-    var startHeight = height / 2 - timeDomainData[timeDomainData.length / 2];
+    var startHeight = halfHeight - timeDomainData[timeDomainData.length / 2];
     var alteredTimeDomainData = timeDomainData;
     ctx.beginPath();
     ctx.strokeStyle = style;
@@ -242,6 +248,30 @@ var drawWaveform = function (timeDomainData, style, volume) {
     ctx.globalCompositeOperation = "source-over";
 }
 
+var drawFloatingCircles = function () {
+    framesSinceLastFloatingCircle += 1;
+    var thickness = 1;
+    var velocity = aSource.volume / 2000;
+    if (aSource.volume / 1500 < framesSinceLastFloatingCircle && aSource.volume / 1500 > 3) {
+        floatingCircles.push(minRadius);
+        framesSinceLastFloatingCircle = 0;
+    } else if (3 >= aSource.volume / 1500 && framesSinceLastFloatingCircle > 3) {
+        floatingCircles.push(minRadius);
+        framesSinceLastFloatingCircle = 0;
+    }
+    ctx.lineWidth = thickness;
+    ctx.strokeStyle = foregroundGradientStops[1];
+    ctx.beginPath();
+    for (var i = 0; i < floatingCircles.length; i++) {
+        floatingCircles[i] += 0.3 + velocity;
+        if (floatingCircles[i] > width / 1.25) floatingCircles.splice(i, 1);
+        ctx.arc(halfWidth, halfHeight, floatingCircles[i], 0, 2 * Math.PI, false);
+        if (i + 1 < floatingCircles.length) ctx.moveTo(halfWidth + floatingCircles[i+1] + velocity, halfHeight);
+    }
+    ctx.stroke();
+    ctx.closePath();
+}
+
 var drawCircle = function(x, y, radius, fillstyle) {
     ctx.beginPath();
     ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
@@ -249,7 +279,6 @@ var drawCircle = function(x, y, radius, fillstyle) {
     ctx.fill();
     ctx.closePath();
 }
-
 
 // Pause and unpause with spacebar
 document.addEventListener("keydown", function(event) {
