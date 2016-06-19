@@ -48,7 +48,7 @@ var audioSource = function(player) {
 
 var player = document.getElementById('player');
 var songs = ['IFL', 'propaganda', 'promnight', 'tobira', 'marblesoda', 'frae', 'glosoli', 'mindspun', 'lippincott', 'endlessfantasy', 'bombay', 'stupidhoe'];
-// player.setAttribute('src', 'music/tobira.mp3');
+player.setAttribute('src', 'music/glosoli.mp3');
 player.setAttribute('src', 'music/' + songs[Math.floor(Math.random() * songs.length)] + '.mp3');
 
 var aSource = new audioSource(player);
@@ -75,6 +75,7 @@ var minRadius = 60;
 var previousMidCircleSize = minRadius;
 var frameCounter = 0;
 var framesSinceLastFloatingCircle = 0;
+var volumeSinceLastFloatingCircle = 0;
 var floatingCircles = [];
 
 
@@ -120,7 +121,7 @@ var drawVisualizer = function() {
     // hueShift: Shifts the hue of colors, speed of shifting depends on the total volume each frame
     hueShift += aSource.volume / 10000;
 
-    drawFloatingCircles();
+    // drawFloatingCircles();
     drawFrequencyBars();
     drawWaveform(aSource.timeDomainData, foregroundGradientStops[0], aSource.volume);    
     drawMiddleCircles();
@@ -249,26 +250,31 @@ var drawWaveform = function (timeDomainData, style, volume) {
 }
 
 var drawFloatingCircles = function () {
+
+    volumeSinceLastFloatingCircle += aSource.volume;
     framesSinceLastFloatingCircle += 1;
-    var thickness = 1;
-    var velocity = aSource.volume / 2000;
-    if (aSource.volume / 1500 < framesSinceLastFloatingCircle && aSource.volume / 1500 > 3) {
-        floatingCircles.push(minRadius);
-        framesSinceLastFloatingCircle = 0;
-    } else if (3 >= aSource.volume / 1500 && framesSinceLastFloatingCircle > 3) {
-        floatingCircles.push(minRadius);
-        framesSinceLastFloatingCircle = 0;
+    var thickness = 2;
+    if (!isPaused) {
+        var velocity = 2 + aSource.volume / 3000;
+    } else {
+        var velocity = 0;
     }
-    ctx.lineWidth = thickness;
+    if (volumeSinceLastFloatingCircle > 90000 && !isPaused) {
+        floatingCircles.push(minRadius);
+        volumeSinceLastFloatingCircle = 0;
+    }
+    ctx.lineWidth = thickness + aSource.volume / 6000;
     ctx.strokeStyle = foregroundGradientStops[1];
     ctx.beginPath();
     for (var i = 0; i < floatingCircles.length; i++) {
-        floatingCircles[i] += 0.3 + velocity;
+        floatingCircles[i] += velocity;
         if (floatingCircles[i] > width / 1.25) floatingCircles.splice(i, 1);
         ctx.arc(halfWidth, halfHeight, floatingCircles[i], 0, 2 * Math.PI, false);
         if (i + 1 < floatingCircles.length) ctx.moveTo(halfWidth + floatingCircles[i+1] + velocity, halfHeight);
     }
+    ctx.globalAlpha = aSource.volume / 12000;
     ctx.stroke();
+    ctx.globalAlpha = 1;
     ctx.closePath();
 }
 
